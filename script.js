@@ -119,25 +119,182 @@ document.querySelector('.nav__links').addEventListener('click', function(e) {
 //Sticky navigation
 //it is jus for define , but it is not good way because it always give the number
 // from top and it is not good for phone
-const initialCoords = section1.getBoundingClientRect()
-console.log(initialCoords);
+// const initialCoords = section1.getBoundingClientRect()
+// console.log(initialCoords);
+//
+// window.addEventListener("scroll", function() {
+//   console.log(window.scrollY);
+//
+//   if (window.scrollY > initialCoords.top) nav.classList.add("sticky")
+//   else nav.classList.remove("sticky")
+// })
 
-window.addEventListener("scroll", function() {
-  console.log(window.scrollY);
+////////////////////////////////////////////////////////////////////////
+//Sticky navigations
+// intersection observer API
+//Well, this API allows our code to basically observe changes to the way that a certain target element intersects another element, or the way it intersects the viewport. And so from this definition alone, I think you can see that this will actually be useful in implementing our sticky navigation.
 
-  if (window.scrollY > initialCoords.top) nav.classList.add("sticky")
-  else nav.classList.remove("sticky")
-})
-//Sticky navigations 
+//callback function
+//this callback function here will get called each time that the observed element,
+// so our target element here, is intersecting the root element at the threshold that we defined
+// //entries are actually an array of the threshold entries, okay,
+// const obsCallback = function(entries, observer) {
+//   //so the viewport, because that's the root,
+//   //and 10% because that's the threshold.
+//   //So whenever that happens, then this function here will get called and that's no matter if we are scrolling up or down,
+//   entries.forEach(entry => {
+//     //we get an intersection observer entry,
+//     //when target element enter to new view port
+//     console.log(entry);
+//   })
+// }
+// //object
+// const obsOption = {
+//   // this root is the element that the target is intersecting. that we want our target element to intersect.
+//   //So we could now here select an element or as an alternative, we can write null, and then we will be able to observe
+//   // our target element intersecting the entire viewport
+//   root: null,
+//   // we can define a threshold. Threshold, and this is basically the percentage of intersection at which the observer
+//   // callback will be called, so this callback here.
+//   // threshold: 0.1,
+//
+//   //here is to now specify an array so to specify different thresholds,and one of them is gonna be zero,So 0% here means
+//   // that basically our callback will trigger each time that the target element moves completely out of the view,and also
+//   // as soon as it enters the view, because callback function will be called when the threshold is passed when moving
+//   // into the view and when moving out of the view,
+//   //they are two point that target happen
+//   threshold: [0, 0.2]
+// }
+//and then here, we will have to pass in a callback function and an object of options.
+// const observer = new IntersectionObserver(obsCallback, obsOption)
+// //this is the target ...>section1
+// observer.observe(section1)
+//we want to visit nav when header disappear...then display navigation
+//we have it
+const header = document.querySelector('.header');
+//because of responsive navigation we can calculate height of nav
+const navHeight = nav.getBoundingClientRect().height;
+console.log(navHeight);
+
+const stickyNav = function(entries) {
+  //entrires[0]
+  const [entry] = entries;
+  console.log(entry);
+
+  //if intersecting is false add sticky navigation
+  //entry is a array of info of the point
+  if (!entry.isIntersecting) nav.classList.add('sticky');
+  else nav.classList.remove('sticky');
+  // you see when that happens, it's basically when the distance between the start of the section and the viewport here is just the same as the navigation.
+  //sticky navigation is started before next section start
+};
+
+const headerObserver = new IntersectionObserver(stickyNav, {
+  //we are again interested in the entire viewport,
+  root: null,
+  //So when 0% of the header here is visible, then we want something to happen.
+  threshold: 0,
+  //this root margin here, for example 90, is a box of 90 pixels that will be applied outside of our target element
+  //percentage and rem doesnt work...90px is the height of navigation
+  rootMargin: `-${navHeight}px`
+});
+headerObserver.observe(header);
+
+////////////////////////////////////////////////////////////
+//Reveal sections
+const allSections = document.querySelectorAll('.section');
+
+const revealSection = function(entries, observer) {
+  const [entry] = entries;
+  console.log(entry);
+
+  if (!entry.isIntersecting) return;
+
+  //we use target because we want just appear the section that we are in
+  entry.target.classList.remove('section--hidden');
+  observer.unobserve(entry.target);
+};
+const sectionObserver = new IntersectionObserver(revealSection, {
+  root: null,
+  threshold: 0.15
+});
+
+allSections.forEach(function(section) {
+  //method ...>>> observe(target)
+  //So let's simply call it the observer, and so now, we have to use this observer to basically observe a certain target.
+  // So observer and then the method we call on that is observe. And then here, the target element. And this one will be section one,
+  sectionObserver.observe(section);
+  // section.classList.add('section--hidden');
+});
+
+////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////
+//Lazy loading images
+//we have two img in html ...with low dimention and high...one of them load in begging in src
+//and data-src is the img with high resolotion that we want to load when we reach to it
+//data.... it is not the standard html attribute but instead it's one of these special data attributes
+//we have a clasee that blure the first img with low resolotion
+//at first we want to load this pic....it is useful for user with low internet conection and phone...
+//we want img with data attribute
+//we dont want to choose all img...just the ones which has data-src
+//the img which they have data property
+const imgTargets = document.querySelectorAll('img[data-src]');
+
+//callback function
+const loadImg = function(entries, observer) {
+  const [entry] = entries;
+  // console.log(entry);
+
+  //use guard class
+  if (!entry.isIntersecting) return;
+
+  //Replace src with data-src
+  entry.target.src = entry.target.dataset.src;
+
+  entry.target.addEventListener('load', function() {
+    entry.target.classList.remove('lazy-img');
+  });
+
+  //stop observing these images because it's no longer necessary we already did our task of loading.And so we no longer need this.
+  observer.unobserve(entry.target);
+};
+
+//obtion here
+const imgObserver = new IntersectionObserver(loadImg, {
+  root: null,
+  threshold: 0,
+  //we want img to download a little bit after reach to them
+  // rootMargin: "-200px",
+  //before reach
+  rootMargin: '200px'
+});
+
+imgTargets.forEach(img => imgObserver.observe(img));
+
+////////////////////////////////////////////////////////////////////////////
+//Slider
+const slides = document.querySelectorAll(".slide")
+
+const slider = document.querySelector(".slider")
+slider.style.transform = "scale(0.2)"
+slider.style.overflow = "visible"
+//at the first , all of the slide are in the same position
+//and set the style on each of them.
+//s>>> slide...i >>>> index
+//So we can multiply 100% by the current index. So in the beginning, that's going to be zero./ So zero times 100, is zero. And then, as you see, it will go all the way until 300. Because in this case, we have four images or four slides. But if we were working with the other slides, then that would only go to 200%, because we only have three slides.
+slides.forEach((s, i) => s.style.transform = `translateX(${100 * i}%)`)
+//0%, 100%, 200%, 300% >> for put them side by side
+
+
 
 
 ///////////////////////////////////////////////////
 //tab component
 const tabs = document.querySelectorAll('.operations__tab');
-const tabsContainer = document.querySelector('.operations__tab-container               ');
+const tabsContainer = document.querySelector('.operations__tab-container');
 const tabContent = document.querySelectorAll('.operations__content');
 
-//it is not good way, because when we have lots of it is cmsbor
+//it is not good way, because when we have lots of it is cumsbor
 // tabs.forEach(t => t.addEventListener("click", function(e) {
 //   // const tar = e.target
 //   console.log("hello");
@@ -270,7 +427,7 @@ const handleHover2 = function(e) {
     const siblings = link.closest('.nav').querySelectorAll('.nav__link');
     const logo = link.closest('.nav').querySelector('img');
 
-    siblings.forEach( el => {
+    siblings.forEach(el => {
       if (el !== link) el.style.opacity = this;
     });
     logo.style.opacity = this;
@@ -279,7 +436,7 @@ const handleHover2 = function(e) {
 //we can not write handleHover(e, 0.5)...
 //So, remember that the bind method creates a copy of the function that it's called on,and it will set the disc keyword in this function call to whatever value that we pass into bind,
 nav.addEventListener('mouseover', handleHover2.bind(0.5));
-nav.addEventListener('mouseout', handleHover2.bind(1))
+nav.addEventListener('mouseout', handleHover2.bind(1));
 ///////////////////////////////////////////////////////////////
 //selecting elements
 
@@ -289,7 +446,7 @@ console.log(document.head);
 console.log(document.body);
 //but otherwise
 //we use it a lots when we want to select the child element
-const header = document.querySelector('.header');
+const header1 = document.querySelector('.header');
 //if you delete one btn in console it does count it
 document.querySelectorAll('.section');
 const allSection = document.querySelectorAll('.section');
@@ -318,7 +475,7 @@ message.innerHTML =
 //   header.prepend(message);
 //append   we have both but we just can see one , that is because a DOM element is unique.
 //it is useful also for move element because here element move from top to bottom
-header.append(message);
+header1.append(message);
 //but if we want to get the massage in both place
 // header.append(message.cloneNode(true))
 
