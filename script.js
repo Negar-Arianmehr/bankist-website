@@ -273,21 +273,137 @@ imgTargets.forEach(img => imgObserver.observe(img));
 
 ////////////////////////////////////////////////////////////////////////////
 //Slider
-const slides = document.querySelectorAll(".slide")
+const slider = function() {
+  const slides = document.querySelectorAll('.slide');
+  const btnLeft = document.querySelector('.slider__btn--left');
+  const btnRight = document.querySelector('.slider__btn--right');
+  const dotContainer = document.querySelector('.dots');
 
-const slider = document.querySelector(".slider")
-slider.style.transform = "scale(0.2)"
-slider.style.overflow = "visible"
+  let curSlide = 0;
+  const maxSlide = slides.length;
+
+// const slider = document.querySelector(".slider")
+// slider.style.transform = "scale(0.4) translateX(-1200px)"
+// slider.style.overflow = "visible"
 //at the first , all of the slide are in the same position
 //and set the style on each of them.
 //s>>> slide...i >>>> index
 //So we can multiply 100% by the current index. So in the beginning, that's going to be zero./ So zero times 100, is zero. And then, as you see, it will go all the way until 300. Because in this case, we have four images or four slides. But if we were working with the other slides, then that would only go to 200%, because we only have three slides.
-slides.forEach((s, i) => s.style.transform = `translateX(${100 * i}%)`)
+//instead of it we can call the goToSlide function and put the slide = 0
+// slides.forEach((s, i) => s.style.transform = `translateX(${100 * i}%)`)
 //0%, 100%, 200%, 300% >> for put them side by side
 
+//Functions
+
+//Creat Dots
+  const createDots = function() {
+    //_ >>> for variables which So a variable that we don't even need.
+    slides.forEach(function(_, i) {
+      //insertAdjecentHtml >>> way of creating HTML elements
+      //creat dots amount of slides
+      dotContainer.insertAdjacentHTML('beforeend', `<button class='dots__dot' data-slide='${i}'></button>`);
+    });
+  };
 
 
+// need to change the indicator
+  const activeDot = function(slide) {
+    //we need to remove active class from all
+    document.querySelectorAll(".dots__dot").forEach(dot => dot.classList.remove("dots__dot--active"))
 
+    //add the active for each one that wwe want
+    document.querySelector(`.dots__dot[data-slide="${slide}"]`).classList.add("dots__dot--active")
+  }
+//the slide that we want to be active at first load
+
+  const goToSlide = function(slide) {
+    slides.forEach(
+      (s, i) => (s.style.transform = `translateX(${100 * (i - slide)}%)`)
+    );
+  };
+//with the slide set to zero. So this slight argument set to zero. And so what this will do is then basically, once our
+// application starts,it immediately goes to slide zero.And so that will then execute basically this code. So slide will
+// be zero. And so i minus zero is then of course just i and so that's 10, exactly what we have here. So go to slide zero.
+
+
+//Next slide...that is works with translatex.....in the biggining we have ziro and for move we have to increase it
+  const nextSlide = function() {
+    if (curSlide === maxSlide - 1) {
+      curSlide = 0;
+    } else {
+      curSlide++;
+    }
+
+    goToSlide(curSlide);
+    activeDot(curSlide)
+  };
+
+// btnRight.addEventListener("click", function() {
+// we can put it in function
+// //maxslide -1 >>> because it is started from 0
+// if (curSlide === maxSlide - 1) {
+//   curSlide = 0
+// }else {
+//   curSlide++
+// }
+// curSlide++
+//
+// //as we loop over these slides, in the first iteration this will be zero, and then zero minus one will be minus one.
+// // And then times 100 is of course, minus 100. Then the next slide, the index is one, and then one minus one is zero.
+// // And so that will then become zero percent. And so remember that the active slide is exactly the one that we want
+// // to be zero percent.
+// //we can creat a function named gotoslide instead of it
+// // slides.forEach((s, i) => s.style.transform = `translateX(${100 * (i - curSlide)}%)`)
+//
+// //call th efunction
+// goToSlide(curSlide)
+// })
+//curSlide = 1: -100%, 0%, 100%, 200%
+
+
+  const prevSlide = function() {
+    if (curSlide === 0) {
+      curSlide = maxSlide - 1;
+    } else {
+      curSlide--;
+    }
+    goToSlide(curSlide);
+    activeDot(curSlide)
+  };
+
+//for initialize
+  const init = function() {
+    goToSlide(0);
+    createDots();
+    activeDot(0)
+  }
+  init()
+
+
+//Event handlers
+  btnRight.addEventListener('click', nextSlide);
+  btnLeft.addEventListener('click', prevSlide);
+
+//we want use keybord to change slides
+  document.addEventListener('keydown', function(e) {
+    //show us which key we want to use
+    console.log(e);
+    if (e.key === 'ArrowLeft') prevSlide();
+    e.key === 'ArrowRight' && nextSlide();
+  });
+
+  dotContainer.addEventListener('click', function(e) {
+    if (e.target.classList.contains("dots__dot")) {
+      //make active dots
+      // const slide = e.target.dataset.slide
+      //use destructuring
+      const { slide } = e.target.dataset;
+      goToSlide(slide);
+      activeDot(slide)
+    }
+  });
+}
+slider()
 ///////////////////////////////////////////////////
 //tab component
 const tabs = document.querySelectorAll('.operations__tab');
