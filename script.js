@@ -799,5 +799,41 @@ console.log(h1.parentElement.children);
 });
 
 
+//some events
 
+//DOM during a webpage's life cycle:
+//the first event that we need to talk about is called DOM content loaded. And this event is fired by the document
+// as soon as the HTML is completely parsed, which means that the HTML has been downloaded and been converted to the DOM tree.
+document.addEventListener("DOMContentLoaded", function(e) {
+  console.log("HTML parsed and DOM tree built", e);
+})
+//we can now execute code that should only be executed after the DOM is available.
+// this is equivalent to the DOM content loaded in
+//  vanilla JavaScript.
+//next up there is also the load event and the load event is fired by the window. As soon as not only the HTML is parsed,
+// but also all the images and external resources like CSS files are also loaded. So basically when the complete page has
+// finished loading is when this event gets fired.
+window.addEventListener("load", function(e) {
+  console.log("Page fully loaded", e);
+})
+//this event here is created immediately before a user is about to leave a page. So for example, after clicking this close
+// button here in the browser tab,
+window.addEventListener("beforeunload",function(e) {
+  e.preventDefault()
+  console.log(e);
+  e.returnValue = "message"
+})
 
+////////////////////////////////////////////////////////////
+//loading JS in HTML
+//Regular
+// <script src='script.js'></script>
+//scripts are fetched and executed after the html is completely parsed
+
+//Async
+// <script async src='script.js'></script>
+//Scripts are fetched asynchronously and executed immediatly
+
+//Defer
+//<script defer src='script.js'></script>
+//Scripts are fetched asynchronously and executed after the HTML is completely parsed
